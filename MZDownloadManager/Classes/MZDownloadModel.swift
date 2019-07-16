@@ -48,8 +48,8 @@ open class MZDownloadModel: NSObject {
     
     fileprivate(set) open var destinationPath: String = ""
     
-    open var coverPath: String!
-    open var identifier: String!
+    open var coverPath: String = ""
+    open var identifier: String = ""
     
     fileprivate convenience init(fileName: String, fileURL: String) {
         self.init()
