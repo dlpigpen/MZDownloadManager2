@@ -71,6 +71,8 @@ open class MZDownloadManager: NSObject {
     fileprivate let TaskDescFileNameIndex = 0
     fileprivate let TaskDescFileURLIndex = 1
     fileprivate let TaskDescFileDestinationIndex = 2
+    fileprivate let TaskDescFileCoverPathIndex = 3
+    fileprivate let TaskDescFileIdentifierIndex = 4
     
     fileprivate weak var delegate: MZDownloadManagerDelegate?
     
@@ -125,7 +127,21 @@ extension MZDownloadManager {
             let fileURL = taskDescComponents[TaskDescFileURLIndex]
             let destinationPath = taskDescComponents[TaskDescFileDestinationIndex]
             
-            let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath)
+            var coverPath = ""
+            var identifier = ""
+            if taskDescComponents.count > TaskDescFileCoverPathIndex {
+                coverPath = taskDescComponents[TaskDescFileCoverPathIndex]
+            } else {
+                coverPath = ""
+            }
+            
+            if taskDescComponents.count > TaskDescFileIdentifierIndex {
+                identifier = taskDescComponents[TaskDescFileIdentifierIndex]
+            } else {
+                identifier = ""
+            }
+            
+            let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, coverPath: coverPath, identifier: identifier)
             downloadModel.task = downloadTask
             downloadModel.startTime = Date()
             
@@ -273,7 +289,21 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
                 let fileURL = taskDescComponents[self.TaskDescFileURLIndex]
                 let destinationPath = taskDescComponents[self.TaskDescFileDestinationIndex]
                 
-                let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath)
+                var coverPath = ""
+                var identifier = ""
+                if taskDescComponents.count > self.TaskDescFileCoverPathIndex {
+                    coverPath = taskDescComponents[self.TaskDescFileCoverPathIndex]
+                } else {
+                    coverPath = ""
+                }
+                
+                if taskDescComponents.count > self.TaskDescFileIdentifierIndex {
+                    identifier = taskDescComponents[self.TaskDescFileIdentifierIndex]
+                } else {
+                    identifier = ""
+                }
+                
+                let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, coverPath: coverPath, identifier:  identifier)
                 downloadModel.status = TaskStatus.failed.description()
                 downloadModel.task = downloadTask
                 
@@ -350,18 +380,18 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
 
 extension MZDownloadManager {
     
-    @objc public func addDownloadTask(_ fileName: String, request: URLRequest, destinationPath: String) {
+    @objc public func addDownloadTask(_ fileName: String, request: URLRequest, destinationPath: String, coverPath: String, identifier: String) {
         
         let url = request.url!
         let fileURL = url.absoluteString
         
         let downloadTask = sessionManager.downloadTask(with: request)
-        downloadTask.taskDescription = [fileName, fileURL, destinationPath].joined(separator: ",")
+        downloadTask.taskDescription = [fileName, fileURL, destinationPath, coverPath, identifier].joined(separator: ",")
         downloadTask.resume()
         
         debugPrint("session manager:\(String(describing: sessionManager)) url:\(String(describing: url)) request:\(String(describing: request))")
         
-        let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath)
+        let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, coverPath: coverPath, identifier: identifier)
         downloadModel.startTime = Date()
         downloadModel.status = TaskStatus.downloading.description()
         downloadModel.task = downloadTask
@@ -370,20 +400,20 @@ extension MZDownloadManager {
         delegate?.downloadRequestStarted?(downloadModel, index: downloadingArray.count - 1)
     }
     
-    @objc public func addDownloadTask(_ fileName: String, fileURL: String, destinationPath: String) {
+    @objc public func addDownloadTask(_ fileName: String, fileURL: String, destinationPath: String, coverPath: String, identifier: String) {
         
         let url = URL(string: fileURL)!
         let request = URLRequest(url: url)
-        addDownloadTask(fileName, request: request, destinationPath: destinationPath)
+        addDownloadTask(fileName, request: request, destinationPath: destinationPath, coverPath: coverPath, identifier: identifier)
         
     }
     
     @objc public func addDownloadTask(_ fileName: String, fileURL: String) {
-        addDownloadTask(fileName, fileURL: fileURL, destinationPath: "")
+        addDownloadTask(fileName, fileURL: fileURL, destinationPath: "", coverPath: "", identifier: "")
     }
     
     @objc public func addDownloadTask(_ fileName: String, request: URLRequest) {
-        addDownloadTask(fileName, request: request, destinationPath: "")
+        addDownloadTask(fileName, request: request, destinationPath: "", coverPath: "", identifier: "")
     }
     
     @objc public func pauseDownloadTaskAtIndex(_ index: Int) {

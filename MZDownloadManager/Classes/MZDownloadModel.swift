@@ -48,11 +48,8 @@ open class MZDownloadModel: NSObject {
     
     fileprivate(set) open var destinationPath: String = ""
     
-    open var coverURL: URL? 
-    open var cover: String?
-    open var duration: Double?
-    open var durationString: String?
-    open var additional: Any?
+    open var coverPath: String!
+    open var identifier: String!
     
     fileprivate convenience init(fileName: String, fileURL: String) {
         self.init()
@@ -61,9 +58,11 @@ open class MZDownloadModel: NSObject {
         self.fileURL = fileURL
     }
     
-    convenience init(fileName: String, fileURL: String, destinationPath: String) {
+    convenience init(fileName: String, fileURL: String, destinationPath: String, coverPath: String, identifier: String) {
         self.init(fileName: fileName, fileURL: fileURL)
         
         self.destinationPath = destinationPath
+        self.coverPath = coverPath
+        self.identifier = identifier
     }
 }
