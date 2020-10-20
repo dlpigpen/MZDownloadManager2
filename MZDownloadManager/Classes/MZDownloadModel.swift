@@ -50,6 +50,7 @@ open class MZDownloadModel: NSObject {
     
     open var coverPath: String = ""
     open var identifier: String = ""
+    open var artist: String = ""
     
     fileprivate convenience init(fileName: String, fileURL: String) {
         self.init()
@@ -64,5 +65,14 @@ open class MZDownloadModel: NSObject {
         self.destinationPath = destinationPath
         self.coverPath = coverPath
         self.identifier = identifier
+    }
+    
+    convenience init(fileName: String, fileURL: String, destinationPath: String, coverPath: String, identifier: String, artist: String) {
+        self.init(fileName: fileName, fileURL: fileURL)
+        
+        self.destinationPath = destinationPath
+        self.coverPath = coverPath
+        self.identifier = identifier
+        self.artist = artist
     }
 }

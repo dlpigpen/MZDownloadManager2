@@ -73,6 +73,7 @@ open class MZDownloadManager: NSObject {
     fileprivate let TaskDescFileDestinationIndex = 2
     fileprivate let TaskDescFileCoverPathIndex = 3
     fileprivate let TaskDescFileIdentifierIndex = 4
+    fileprivate let TaskDescFileArtistIndex = 5
     
     fileprivate weak var delegate: MZDownloadManagerDelegate?
     
@@ -112,7 +113,9 @@ extension MZDownloadManager {
         
         let _ = semaphore.wait(timeout: DispatchTime.distantFuture)
         
+        #if DEBUG
         debugPrint("MZDownloadManager: pending tasks \(tasks)")
+        #endif
         
         return tasks
     }
@@ -129,6 +132,8 @@ extension MZDownloadManager {
             
             var coverPath = ""
             var identifier = ""
+            var artist = ""
+            
             if taskDescComponents.count > TaskDescFileCoverPathIndex {
                 coverPath = taskDescComponents[TaskDescFileCoverPathIndex]
             } else {
@@ -141,7 +146,14 @@ extension MZDownloadManager {
                 identifier = ""
             }
             
-            let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, coverPath: coverPath, identifier: identifier)
+            if taskDescComponents.count > TaskDescFileArtistIndex {
+                   artist = taskDescComponents[TaskDescFileArtistIndex]
+            } else {
+                   artist = ""
+            }
+            
+            
+            let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, coverPath: coverPath, identifier: identifier, artist: artist)
             downloadModel.task = downloadTask
             downloadModel.startTime = Date()
             
@@ -182,8 +194,11 @@ extension MZDownloadManager {
         }
         
         let fileManager: FileManager = FileManager.default
+        
+        #if DEBUG
         debugPrint("resume data file exists: \(fileManager.fileExists(atPath: tempfile))")
-
+        #endif
+        
         return fileManager.fileExists(atPath: tempfile)
     }
 }
@@ -250,12 +265,17 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
                 //If all set just move downloaded file to the destination
                 if fileManager.fileExists(atPath: basePath) {
                     let fileURL = URL(fileURLWithPath: destinationPath as String)
+                    
+                    #if DEBUG
                     debugPrint("directory path = \(destinationPath)")
+                    #endif
                     
                     do {
                         try fileManager.moveItem(at: location, to: fileURL)
                     } catch let error as NSError {
+                        #if DEBUG
                         debugPrint("Error while moving downloaded file to destination path:\(error)")
+                        #endif
                         DispatchQueue.main.async(execute: { () -> Void in
                             self.delegate?.downloadRequestDidFailedWithError?(error, downloadModel: downloadModel, index: index)
                         })
@@ -280,7 +300,10 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
     }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        #if DEBUG
         debugPrint("task id: \(task.taskIdentifier)")
+        #endif
+        
         /***** Any interrupted tasks due to any reason will be populated in failed state after init *****/
         
         DispatchQueue.main.async {
@@ -297,6 +320,7 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
                 
                 var coverPath = ""
                 var identifier = ""
+                var artist = ""
                 if taskDescComponents.count > self.TaskDescFileCoverPathIndex {
                     coverPath = taskDescComponents[self.TaskDescFileCoverPathIndex]
                 } else {
@@ -309,7 +333,13 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
                     identifier = ""
                 }
                 
-                let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, coverPath: coverPath, identifier:  identifier)
+                if taskDescComponents.count > self.TaskDescFileArtistIndex {
+                    artist = taskDescComponents[self.TaskDescFileArtistIndex]
+                } else {
+                    artist = ""
+                }
+                
+                let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, coverPath: coverPath, identifier:  identifier, artist: artist)
                 downloadModel.status = TaskStatus.failed.description()
                 downloadModel.task = downloadTask
                 
@@ -378,7 +408,10 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
                 backgroundCompletion()
             })
         }
+        
+        #if DEBUG
         debugPrint("All tasks are finished")
+        #endif
     }
 }
 
@@ -395,7 +428,9 @@ extension MZDownloadManager {
         downloadTask.taskDescription = [fileName, fileURL, destinationPath, coverPath, identifier].joined(separator: ",")
         downloadTask.resume()
         
+        #if DEBUG
         debugPrint("session manager:\(String(describing: sessionManager)) url:\(String(describing: url)) request:\(String(describing: request))")
+        #endif
         
         let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, coverPath: coverPath, identifier: identifier)
         downloadModel.startTime = Date()
