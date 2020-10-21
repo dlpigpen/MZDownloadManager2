@@ -81,7 +81,7 @@ extension MZAvailableDownloadsViewController {
         //Use it download at default path i.e document directory
 //        mzDownloadingViewObj?.downloadManager.addDownloadTask(fileName as String, fileURL: fileURL as String)
         
-        mzDownloadingViewObj?.downloadManager.addDownloadTask(fileName as String, fileURL: fileURL as String, destinationPath: myDownloadPath, coverPath: "Duc", identifier: "\(indexPath.row)")
+        mzDownloadingViewObj?.downloadManager.addDownloadTask(fileName as String, fileURL: fileURL as String, destinationPath: myDownloadPath, coverPath: "Duc", identifier: "\(indexPath.row)", artist: "")
         
         availableDownloadsArray.remove(at: (indexPath as NSIndexPath).row)
         tableView.deleteRows(at: [indexPath], with: UITableViewRowAnimation.right)

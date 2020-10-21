@@ -1,7 +1,7 @@
 
 Pod::Spec.new do |s|
   s.name             = "MZDownloadManager2"
-  s.version          = "3.5.5"
+  s.version          = "3.5.6"
   s.summary          = "NSURLSession based download manager."
 
   s.description      = <<-DESC

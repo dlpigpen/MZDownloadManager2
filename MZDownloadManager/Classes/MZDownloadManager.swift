@@ -419,7 +419,7 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
 
 extension MZDownloadManager {
     
-    @objc public func addDownloadTask(_ fileName: String, request: URLRequest, destinationPath: String, coverPath: String, identifier: String) {
+    @objc public func addDownloadTask(_ fileName: String, request: URLRequest, destinationPath: String, coverPath: String, identifier: String, artist: String) {
         
         let url = request.url!
         let fileURL = url.absoluteString
@@ -432,7 +432,7 @@ extension MZDownloadManager {
         debugPrint("session manager:\(String(describing: sessionManager)) url:\(String(describing: url)) request:\(String(describing: request))")
         #endif
         
-        let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, coverPath: coverPath, identifier: identifier)
+        let downloadModel = MZDownloadModel.init(fileName: fileName, fileURL: fileURL, destinationPath: destinationPath, coverPath: coverPath, identifier: identifier, artist: artist)
         downloadModel.startTime = Date()
         downloadModel.status = TaskStatus.downloading.description()
         downloadModel.task = downloadTask
@@ -441,20 +441,18 @@ extension MZDownloadManager {
         delegate?.downloadRequestStarted?(downloadModel, index: downloadingArray.count - 1)
     }
     
-    @objc public func addDownloadTask(_ fileName: String, fileURL: String, destinationPath: String, coverPath: String, identifier: String) {
-        
+    @objc public func addDownloadTask(_ fileName: String, fileURL: String, destinationPath: String, coverPath: String, identifier: String, artist: String) {
         let url = URL(string: fileURL)!
         let request = URLRequest(url: url)
-        addDownloadTask(fileName, request: request, destinationPath: destinationPath, coverPath: coverPath, identifier: identifier)
-        
+        addDownloadTask(fileName, request: request, destinationPath: destinationPath, coverPath: coverPath, identifier: identifier, artist: artist)
     }
     
     @objc public func addDownloadTask(_ fileName: String, fileURL: String) {
-        addDownloadTask(fileName, fileURL: fileURL, destinationPath: "", coverPath: "", identifier: "")
+        addDownloadTask(fileName, fileURL: fileURL, destinationPath: "", coverPath: "", identifier: "", artist: "")
     }
     
     @objc public func addDownloadTask(_ fileName: String, request: URLRequest) {
-        addDownloadTask(fileName, request: request, destinationPath: "", coverPath: "", identifier: "")
+        addDownloadTask(fileName, request: request, destinationPath: "", coverPath: "", identifier: "", artist: "")
     }
     
     @objc public func pauseDownloadTaskAtIndex(_ index: Int) {
