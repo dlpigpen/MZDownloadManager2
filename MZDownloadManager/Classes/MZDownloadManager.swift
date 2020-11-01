@@ -205,6 +205,13 @@ extension MZDownloadManager {
 
 extension MZDownloadManager: URLSessionDownloadDelegate {
     
+    public func getSpeed(speed: Float) -> Int64 {
+        guard !(speed.isNaN || speed.isInfinite) else {
+            return 1 // or do some error handling
+        }
+        return Int64(speed)
+    }
+    
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         for (index, downloadModel) in self.downloadingArray.enumerated() {
             if downloadTask.isEqual(downloadModel.task) {
@@ -222,7 +229,8 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
                     
                     let remainingContentLength = totalBytesExpectedToWrite - totalBytesWritten
                     
-                    let remainingTime = remainingContentLength / Int64(speed)
+                    let speedInt64 = self.getSpeed(speed: speed)
+                    let remainingTime = remainingContentLength / speedInt64
                     let hours = Int(remainingTime) / 3600
                     let minutes = (Int(remainingTime) - hours * 3600) / 60
                     let seconds = Int(remainingTime) - hours * 3600 - minutes * 60
@@ -233,8 +241,8 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
                     let downloadedFileSize = MZUtility.calculateFileSizeInUnit(totalBytesWritten)
                     let downloadedSizeUnit = MZUtility.calculateUnit(totalBytesWritten)
                     
-                    let speedSize = MZUtility.calculateFileSizeInUnit(Int64(speed))
-                    let speedUnit = MZUtility.calculateUnit(Int64(speed))
+                    let speedSize = MZUtility.calculateFileSizeInUnit(speedInt64)
+                    let speedUnit = MZUtility.calculateUnit(speedInt64)
                     
                     downloadModel.remainingTime = (hours, minutes, seconds)
                     downloadModel.file = (totalFileSize, totalFileSizeUnit as String)
@@ -349,14 +357,14 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
                 if self.isValidResumeData(resumeData) == true {
                     newTask = self.sessionManager.downloadTask(withResumeData: resumeData!)
                 } else {
-                    newTask = self.sessionManager.downloadTask(with: URL(string: fileURL as String)!)
+                    if let urlFile = URL(string: fileURL as String) {
+                        newTask = self.sessionManager.downloadTask(with:urlFile)
+                    }
                 }
-                
+
                 newTask.taskDescription = downloadTask.taskDescription
                 downloadModel.task = newTask
-                
                 self.downloadingArray.append(downloadModel)
-                
                 self.delegate?.downloadRequestDidPopulatedInterruptedTasks(self.downloadingArray)
                 
             } else {
@@ -378,7 +386,9 @@ extension MZDownloadManager: URLSessionDownloadDelegate {
                             if self.isValidResumeData(resumeData) == true {
                                 newTask = self.sessionManager.downloadTask(withResumeData: resumeData!)
                             } else {
-                                newTask = self.sessionManager.downloadTask(with: URL(string: downloadModel.fileURL)!)
+                                if let urlFile = URL(string: downloadModel.fileURL) {
+                                    newTask = self.sessionManager.downloadTask(with:urlFile)
+                                }
                             }
                             
                             newTask.taskDescription = task.taskDescription
